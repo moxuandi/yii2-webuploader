@@ -38,8 +38,6 @@ public function actions()
                 'thumbStatus' => true,  // 生成缩略图
                 'thumbWidth' => 150,    // 缩略图宽度
                 'thumbHeight' => 100,   // 缩略图高度
-                'saveDatabase'=> true,  // 保存上传信息到数据库
-                    // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
             ],
         ],
     ];
@@ -71,6 +69,8 @@ $form->field($model, 'images')->widget('moxuandi\webuploader\MultiImage', [
     ]
 ]);
 ```
+#### 单图上传将`moxuandi\webuploader\MultiImage`替换为`moxuandi\webuploader\SingleImage`
+
 编辑器相关配置，请在`view`中配置，参数为`config`，比如限制上传类型、文件大小等等，具体参数请查看[WebUploader官网API](http://fex.baidu.com/webuploader/doc/index.html)
 
 文件上传相关配置，请在`controller`中配置，参数为`config`,例如文件保存路径等；更多参数请参照 UploaderAction 的 $_config
@@ -89,11 +89,9 @@ public function actions()
         'thumbStatus' => false,  // 是否生成缩略图
         'thumbWidth' => 300,  // 缩略图宽度
         'thumbHeight' => 200,  // 缩略图高度
-        'thumbCut' => 1,  // 生成缩略图的方式, 0:留白, 1:裁剪
-        'pathFormat' => 'uploads/image/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
+        'thumbMode' => 'outbound',  // 生成缩略图的方式, 'inset'(补白), 'outbound'(裁剪, 默认值)
+        'pathFormat' => '/uploads/image/{yyyy}{mm}/{yy}{mm}{dd}_{hh}{ii}{ss}_{rand:4}',
           // 上传保存路径, 可以自定义保存路径和文件名格式
-        'saveDatabase' => false,  // 保存上传信息到数据库
-          // 使用前请导入'database'文件夹中的数据表'upload'和模型类'Upload'
       ],
     ],
   ];

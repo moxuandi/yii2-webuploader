@@ -6,7 +6,7 @@ use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\widgets\InputWidget;
 
-class MultiImage extends InputWidget
+class SingleImage extends InputWidget
 {
 	/**
 	 * 配置接口, 参考 init() 中的 $_config
@@ -28,7 +28,7 @@ class MultiImage extends InputWidget
 
         // 配置项, 参考'assets/webupload_parameter.js'
         $_config = [
-        	'wrapId' => 'multiUpload',
+        	'wrapId' => 'singleUpload',
             'inputId' => $this->id,
             'swf' => '../dist/Uploader.swf',  // 固定值
             'pick' => [
@@ -62,8 +62,8 @@ class MultiImage extends InputWidget
 			//'fileVal' => 'file',  // [默认值：'file'] 设置文件上传域的name
 			//'method' => 'POST',  // [默认值：'POST'] 文件上传方式，POST或者GET
 			//'sendAsBinary' => false,  // [默认值：false] 是否已二进制的流的方式发送文件，这样整个上传内容php://input都为文件内容， 其他参数在$_GET数组中
-			'fileNumLimit' => 30,  // [默认值：undefined] 验证文件总数量, 超出则不允许加入队列
-			'fileSizeLimit' => 30*1024*1024,  // [默认值：undefined] 验证文件总大小是否超出限制, 超出则不允许加入队列
+			'fileNumLimit' => 1,  // [默认值：undefined] 验证文件总数量, 超出则不允许加入队列
+			'fileSizeLimit' => 2*1024*1024,  // [默认值：undefined] 验证文件总大小是否超出限制, 超出则不允许加入队列
 			'fileSingleSizeLimit' => 2*1024*1024,  // [默认值：undefined] 验证单个文件大小是否超出限制, 超出则不允许加入队列
 			//'duplicate' => true,  // [默认值：undefined] 去重， 根据文件名字、文件大小和最后修改时间来生成hash Key.
 			//'duplicate' 失效, 在 uploader.on('error', function(code){}) 中 type='F_DUPLICATE'
@@ -74,7 +74,7 @@ class MultiImage extends InputWidget
 
     public function run()
     {
-        MultiImageAsset::register($this->view);
-        return $this->render('multi', ['config' => Json::encode($this->config)]);
+        SingleImageAsset::register($this->view);
+        return $this->render('single', ['config' => Json::encode($this->config)]);
     }
 }

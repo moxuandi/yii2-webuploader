@@ -3,12 +3,9 @@ jQuery(function(){
 	var $wrap = $('#' + window.webuploader.wrapId);
 	var $queue = $wrap.find('.filelist');  // 图片容器
     var $statusBar = $wrap.find('.statusBar');  // 状态栏, 包括进度和控制按钮
-    var $info = $statusBar.find('.info');  // 文件总体选择信息
     var $upload = $wrap.find('.uploadBtn');  // 上传按钮
     var $filePickerBtn = $wrap.find('.filePickerBtn');  // 上传按钮
-    var $filePickerBlock = $wrap.find('.filePickerBlock');  // 上传按钮
     var $placeHolder = $wrap.find('.placeholder');  // 没选择文件之前的内容
-    var $progress = $statusBar.find('.progress').hide();  // 进度条
     var $inputId = $('#' + window.webuploader.inputId);  // 上传信息保存的输入域对象
     var fileCount = 0;  // 添加的文件数量
     var fileSize = 0;  // 添加的文件总大小
@@ -31,9 +28,8 @@ jQuery(function(){
     
     // 实例化
     var uploader = WebUploader.create(window.webuploader);
-    
-    uploader.addButton({id:'#filePickerBlock'});
-    uploader.addButton({id:'#filePickerBtn',label:'继续添加'});
+
+    uploader.addButton({id:'#filePickerBtn',label:'重新选择'});
 
     // 初始化时显示已上传图片
     function initServerFile(){
@@ -79,7 +75,6 @@ jQuery(function(){
             $btns = $('<div class="file-panel">' + '<span class="cancel">删除</span>' + '<span class="rotateRight">向右旋转</span>' + '<span class="rotateLeft">向左旋转</span></div>').appendTo($li),
 			$prgress = $li.find('p.progress span'),
             $wrap = $li.find('p.imgWrap'),
-            $info = $('<p class="error"></p>').hide().appendTo($li),
             showError = function(code){
                 switch(code){
                 	case 'exceed_size': text = '文件大小超出'; break;
@@ -89,7 +84,6 @@ jQuery(function(){
 					//default: text = '上传失败, 请重试'; break;
 					default: text = code; break;
                 }
-                $info.text(text).show().appendTo($li);
             };
 
     	if(file.src == 'client'){  // 本地选择的文件
@@ -110,7 +104,6 @@ jQuery(function(){
             // 文件状态变化
             file.on('statuschange', function(cur, prev){
                 if(prev == 'progress'){
-                    $progress.hide();
                 }else if(prev == 'queued'){
                     //$li.off('mouseenter mouseleave');
                     //$btns.remove();  // 移除图片上的按钮
@@ -124,9 +117,7 @@ jQuery(function(){
                 }else if(cur == 'queued'){
                     percentages[file.id ][1] = 0;
                 }else if(cur == 'progress'){
-                    $info.remove();
-                    //$info.hide();
-                    $progress.css('display', 'block');
+
                 }else if(cur == 'complete'){
                     $li.append('<span class="success"></span>');
                 }
@@ -167,8 +158,8 @@ jQuery(function(){
                 $wrap.css('filter', 'progid:DXImageTransform.Microsoft.BasicImage(rotation=' + (~~((file.rotation/90)%4 + 4)%4) +')');
             }
         });
-        
-        $li.insertBefore($filePickerBlock);
+
+        $queue.html($li);
     }
     
     //删除 webupload 队列中的文件, 负责 view 的销毁
@@ -198,27 +189,22 @@ jQuery(function(){
                 $placeHolder.removeClass('element-invisible');
                 $queue.addClass('element-invisible');
                 $statusBar.addClass('element-invisible');
-                $progress.hide(); $info.hide();
                 uploader.refresh();
                 break;
             case 'ready':  // 可以开始上传
                 $placeHolder.addClass('element-invisible');
                 $queue.removeClass('element-invisible');
                 $statusBar.removeClass('element-invisible');
-                $progress.hide(); $info.show();
                 $upload.text('开始上传').removeClass('disabled');
                 uploader.refresh();
                 break;
             case 'uploading':  // 上传中
-                $progress.show(); $info.hide();
                 $upload.text('暂停上传');
                 break;
             case 'paused':  // 暂停上传
-                $progress.show(); $info.hide();
                 $upload.text('继续上传');
                 break;
             case 'confirm':  //
-                $progress.show(); $info.hide();
                 $upload.text('开始上传');
                 //$upload.text('开始上传').addClass('disabled');
                 stats = uploader.getStats();
@@ -227,7 +213,6 @@ jQuery(function(){
                 }
                 break;
             case 'finish':
-            	$progress.hide(); $info.show();
                 stats = uploader.getStats();
                 if(stats.uploadFailNum){
 					$upload.text('重试上传').removeClass('disabled');
@@ -237,7 +222,6 @@ jQuery(function(){
 				}
                 break;
             case 'retry':  // 重试上传
-            	$progress.hide(); $info.show();
             	break;
     	}
     	updateStatus();
@@ -245,14 +229,12 @@ jQuery(function(){
     
     //更新 webuploader 中图片上传的进度条
     function updateTotalProgress(){
-        var loaded = 0, total = 0, spans = $progress.children(), percent;
+        var loaded = 0, total = 0, percent;
         $.each(percentages, function(k, v){
             total += v[0];
             loaded += v[0] * v[1];
         });
         percent = total ? loaded / total : 0;
-        spans.eq(0).text(Math.round(percent * 100) + '%');
-        spans.eq(1).css('width', Math.round(percent * 100) + '%');
         updateStatus();
     }
     
@@ -274,7 +256,6 @@ jQuery(function(){
                 text += stats.uploadFailNum + '个文件上传失败, <a class="retry" href="javascript:void()">重试上传</a>失败图片或<a class="ignore" href="javascript:void()">忽略</a>';
             }
         }
-        $info.html(text);
     }
     
     // 当有文件被添加进队列的时候
@@ -338,20 +319,6 @@ jQuery(function(){
         }else if(state == 'retry'){
         	uploader.retry();  // 重试上传
         }
-    });
-    
-    // 当"重试上传"被点击时, 重试上传文件
-    $info.on('click', '.retry', function(){
-        uploader.retry();
-    });
-
-	// 当"忽略"被点击时, 获取所有上传失败的文件, 然后删除
-    $info.on('click', '.ignore', function(){
-        var errorFile = uploader.getFiles('error');
-    	for(var i=0; i<errorFile.length; i++){
-    		uploader.removeFile(errorFile[i]);
-    	}
-    	setState('finish');
     });
     
     $upload.addClass('state-' + state);
