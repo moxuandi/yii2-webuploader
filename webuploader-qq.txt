@@ -1,0 +1,115 @@
+
+/**
+ * 可以实现一个页面调用多次, 不冲突
+ * @todo 初始化webuploader插件[封装webuploader公共方法]
+ * @param thumbnail_id 图片[缩略|预览]图ID
+ * @param choose_id '选择图片'按钮ID
+ * @param type 图片的类型
+ * @param pic_number 同时上传图片的最大个数
+ * @param photo_id_arr 后台返回图片ID追加进此数组
+ * @param thumbnailWidth  缩略图的宽
+ * @param thumbnailHeight 缩略图的高
+ */
+function uploader_load(thumbnail_id, choose_id, type, pic_number, photo_id_arr, thumbnailWidth, thumbnailHeight) {
+	var $list = $("#" + thumbnail_id); //初始化
+	//var $btn =$("#ctlBtn");   //开始上传  
+	var thumbnailWidth = thumbnailWidth; //缩略图高度和宽度 （单位是像素），当宽高度是0~1的时候，是按照百分比计算，具体可以看api文档  
+	var thumbnailHeight = thumbnailHeight;
+
+	var uploader = WebUploader.create({
+		auto: true, // 选完文件后，是否自动上传。  
+
+		// swf文件路径  
+		swf: '<?php  echo $cdn_host;?>js/webuploader/Uploader.swf',
+
+		// 文件接收服务端。  
+		server: '/helperuser/publish/photoupload?type=' + type, // 文件接收服务端 
+
+		// 选择文件的按钮。可选。  
+		// 内部根据当前运行是创建，可能是input元素，也可能是flash.  
+		pick: '#' + choose_id,
+		fileNumLimit: pic_number, //只上传1张头条图片
+		threads: 1, //上传并发数。上传多个会出现问题
+		// 只允许选择图片文件。  
+		accept: {
+			title: 'Images',
+			extensions: 'gif,jpg,jpeg,bmp,png',
+			mimeTypes: 'image/*'
+		},
+		method: 'POST',
+	});
+
+	// 当有文件添加进来的时候  
+	uploader.on('fileQueued', function(file) { // webuploader事件.当选择文件后，文件被加载到文件队列中，触发该事件。等效于 uploader.onFileueued = function(file){...} ，类似js的事件定义。  
+		var $li = $(
+				'<div id="' + file.id + '" class="file-item thumbnail" style="float:left">' +
+				'<img>' +
+				'<span title="删除" class="selfmedia_addtemplate_imgDelSpan remove-this" id="span_' + file.id + '" div_id="' + file.id + '">X</span>' +
+				//'<div class="info">' + file.name + '</div>' + 
+				// onclick="helperuser_publish_delWeiToutiaoPicture(this)"
+				'</div>'
+			),
+			$img = $li.find('img');
+
+		$list.append($li); // $list为容器jQuery实例  
+
+		//删除操作
+		$li.on('click', '.remove-this', function() {
+			uploader.removeFile(file, true); //移除某一文件, 默认只会标记文件状态为已取消，如果第二个参数为 true 则会从 queue 中移除。
+
+			helperuser_publish_delAskPicture(this, file.id, photo_id_arr);
+		});
+		/** 创建缩略图  如果为非图片文件，可以不用调用此方法。
+		           thumbnailWidth x thumbnailHeight 为 100 x 100  */
+		uploader.makeThumb(file, function(error, src) { //webuploader方法  
+			if(error) {
+				$img.replaceWith('<span>不能预览</span>');
+				return;
+			}
+
+			$img.attr('src', src);
+		}, thumbnailWidth, thumbnailHeight);
+	});
+
+	//点击上传操作
+	/*$btn.on( 'click', function() { 
+	           	//$('#photopicker').refresh();	//刷新选择框，继续选图片
+	            console.log("上传...");  
+	            uploader.upload();  
+	            console.log("上传结束...");  
+	          }); */
+
+	// 文件上传成功，给item添加成功class, 用样式标记上传成功。  
+	uploader.on('uploadSuccess', function(file, response) {
+		photo_id_arr.push(response.data); //累加微头条的图片ID
+		var successLi = $('#' + file.id);
+		var success = successLi.find('div.success');
+		if(!success.length) {
+			success = $('<div class="success"></div>').appendTo(successLi);
+		}
+
+		//根据状态显示字段
+		if(response.status == 'error') {
+			success.html('<span style="font-size: 12px;color:red">' + response.message + '</span>');
+		} else {
+			success.html('<span style="font-size: 12px;color:green">上传成功</span>');
+		}
+
+		$('<div id=' + file.id + '></div>').appendTo(success);
+
+		//找到  ×  给 × 的data属性赋值，用于删除数组中的文件ID
+		var chaSpan = $('#span_' + file.id); //找到span元素赋data属性
+		chaSpan.attr('data', response.data); //给span加上data属性
+	});
+
+	// 文件上传失败，显示上传出错。  
+	uploader.on('uploadError', function(file) {
+		var errorLi = $('#' + file.id);
+		var error = errorLi.find('div.success');
+		if(!error.length) {
+			error = $('<div class="success"></div>').appendTo(errorLi);
+		}
+		error.html('<span style="font-size: 12px;color:red">上传失败</span>');
+		$('<div id=' + file.id + '></div>').appendTo(error);
+	});
+}
