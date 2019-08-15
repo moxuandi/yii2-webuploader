@@ -15,7 +15,7 @@ WebUploader是由Baidu WebFE(FEX)团队开发的一个简单的以HTML5为主，
 composer require moxuandi/yii2-webuploader:"~2.2.0"
 
 # 2.x(yii >= 2.0.16):
-composer require moxuandi/yii2-webuploader:"~2.0.0"
+composer require moxuandi/yii2-webuploader:"~2.1.0"
 
 # 1.x(非重要Bug, 不再更新):
 composer require moxuandi/yii2-webuploader:"~1.0"
