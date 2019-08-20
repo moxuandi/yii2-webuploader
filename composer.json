@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "moxuandi/yii2-helpers": "~2.1.0"
+        "moxuandi/yii2-helpers": "~2.2.0"
     },
     "autoload": {
         "psr-4": {
