@@ -9,6 +9,7 @@ use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
+use yii\helpers\Json;
 use yii\imagine\Image;
 use yii\web\Response;
 
@@ -79,9 +80,21 @@ class UploaderAction extends Action
     {
         $upload = new Uploader('file', $this->config, 'upload');
         if($upload->stateInfo === 'SUCCESS'){
-            return ['code' => 1, 'url' => $upload->fullName];
+            $result = [
+                'code' => 0,
+                'url' => $upload->fullName,
+                'name' => $upload->realName,
+                'process' => $upload->processName,
+                'size' => $upload->fileSize,
+                'type' => $upload->fileType,
+                'ext' => $upload->fileExt,
+            ];
+            if($upload->uploadModel){
+                $result['uid'] = $upload->uploadModel->id;
+            }
+            return $result;
         }else{
-            return ['code' => 0, 'msg' => $upload->stateInfo];
+            return ['code' => 1, 'msg' => $upload->stateInfo];
         }
     }
 
@@ -90,21 +103,14 @@ class UploaderAction extends Action
     {
         $request = Yii::$app->request;
         $rootPath = ArrayHelper::getValue($this->config, 'rootPath', dirname($request->scriptFile));
-        $urls = explode(',', $request->post('urls'));
+        $data = Json::decode($request->post('urls'));
         $result = [];
-        foreach($urls as $k => $url){
-            $filePath = FileHelper::normalizePath($rootPath . DIRECTORY_SEPARATOR . $url);  // 绝对路径
+        foreach($data as $k => $datum){
+            $filePath = FileHelper::normalizePath($rootPath . DIRECTORY_SEPARATOR . $datum['url']);  // 绝对路径
             $imgInfo = Helper::getImageInfo($filePath, true);  // 获取图片信息
-
-            $result[$k] = [
-                'name' => substr($url, strrpos($url, '/') + 1),
-                'size' => filesize($filePath),
-                'type' => $imgInfo['mime'],
-                //'lastModifiedDate' => filemtime($filePath),
-                'ext' => strtolower($imgInfo['type']),
-                'url' => $url,
+            $result[$k] = ArrayHelper::merge($datum, [
                 'path' => self::makeThumb2($filePath, $request->post('width'), $request->post('height'), $imgInfo['mime']),
-            ];
+            ]);
         }
         return $result;
     }
