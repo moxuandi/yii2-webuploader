@@ -41,7 +41,7 @@ class MultiImage extends InputWidget
 
         // 配置项, 参考'assets/webupload_parameter.js'
         $_config = [
-            'wrapId' => $this->id . '_multiUpload',
+            'wrapId' => "{$this->id}_multiUpload",
             'inputId' => $this->id,
             'swf' => '../dist/Uploader.swf',  // 固定值
             'pick' => [

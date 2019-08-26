@@ -20,7 +20,8 @@ $this->registerJs("window.webuploader={$config}", $this::POS_END);
             <div class="progress">
                 <span class="text">0%</span>
                 <span class="percentage"></span>
-            </div><div class="info"></div>
+            </div>
+            <div class="info"></div>
             <div class="btns">
                 <div id="<?= $id ?>_filePickerBtn"></div>
                 <div class="uploadBtn"></div>

@@ -17,11 +17,11 @@ class MultiImageAsset extends AssetBundle
     public $sourcePath = '@vendor/moxuandi/yii2-webuploader/assets';
     public $css = [
         'dist/webuploader.css',
-        'multi/multi.css'
+        'image/multi.css'
     ];
     public $js = [
         'dist/webuploader.nolog.min.js',
-        'multi/multi.js'
+        'image/multi.js'
     ];
     public $depends = [
         'yii\web\JqueryAsset',
