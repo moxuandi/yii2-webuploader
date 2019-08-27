@@ -42,17 +42,17 @@ jQuery(function(){
             $.ajax({
                 type: "post",
                 url: window.webuploader.initUrl,
-                async: true,
+                async: false,
                 dataType: 'json',
                 data: {urls:$inputId.val(), width:thumbnailWidth, height:thumbnailHeight},
                 success: function(data){
                     for(var i=0; i<data.length; i++){
-                        data[i].src = "server";
-                        data[i].id = "SVR_FILE_" + i;
-                        data[i].rotation = 0;
-                        fileQueue(data[i]);
-                        fileHashList[hashString(data[i].name + data[i].size)] = true;  // hash列表
-                        percentages[data[i].id] = [data[i].size, 100];
+                        var file = new WebUploader.File(data[i]);
+                        file.src = "server";
+                        uploader.addFile(file);
+                        uploader.getFiles()[i].setStatus('complete');  // 设置状态:上传完成
+                        fileHashList[hashString(file.name + file.size)] = true;  // hash列表
+                        percentages[file.id] = [file.size, 100];
                     }
                 },
                 error: function(xhr, status, error){
@@ -78,7 +78,7 @@ jQuery(function(){
     }
     
     // 添加文件到 webuploader 队列中, 负责 view 的创建
-    function addFile(file){ 
+    function addFile(file){
         var $li = $('<li id="' + file.id + '">' + '<p class="title">' + file.name + '</p>' + '<p class="imgWrap"></p>' + '<p class="progress"><span></span></p>' + '</li>'),
             $btns = $('<div class="file-panel">' + '<span class="cancel">删除</span>' + '<span class="rotateRight">向右旋转</span>' + '<span class="rotateLeft">向左旋转</span></div>').appendTo($li),
             $prgress = $li.find('p.progress span'),
@@ -137,8 +137,8 @@ jQuery(function(){
                 $li.removeClass('state-' + prev).addClass('state-' + cur);
             });
         }else{  // 服务器端图片
-            var img = $('<img src="' + file.path + '">');
-            $wrap.empty().append(img);
+            var img = $('<img src="' + file.source.path + '">');
+            $wrap.empty().append(img).parent().append('<span class="success"></span>');
         }
 
         // 当鼠标指针进入(穿过)元素时, 显示控制按钮
