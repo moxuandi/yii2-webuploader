@@ -5,7 +5,6 @@ use moxuandi\helpers\Helper;
 use moxuandi\helpers\Uploader;
 use Yii;
 use yii\base\Action;
-use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
@@ -52,15 +51,14 @@ class UploaderAction extends Action
     }
 
     /**
-     * @throws ErrorException
      * @throws Exception
      */
     public function run()
     {
         switch(Yii::$app->request->get('action')){
-            case 'initFile': $result = self::initFile(); break;
-            //case 'uploadJson': self::uploadJson(); break;
-            default: $result = self::uploadJson(); break;
+            case 'initFile': $result = $this->initFile(); break;
+            case 'uploadJson':
+            default: $result = $this->uploadJson(); break;
         }
 
         // 输出响应结果
@@ -73,13 +71,14 @@ class UploaderAction extends Action
     /**
      * 执行上传操作, 返回上传结果
      * @return array
-     * @throws ErrorException
      * @throws Exception
      */
     public function uploadJson()
     {
         $upload = new Uploader('file', $this->config, 'upload');
-        if($upload->stateInfo === 'SUCCESS'){
+        if($upload->status){
+            return ['code' => 1, 'msg' => Uploader::$stateMap[$upload->status]];
+        }else{
             $result = [
                 'code' => 0,
                 'url' => $upload->fullName,
@@ -93,12 +92,13 @@ class UploaderAction extends Action
                 $result['uid'] = $upload->uploadModel->id;
             }
             return $result;
-        }else{
-            return ['code' => 1, 'msg' => $upload->stateInfo];
         }
     }
 
-    // 初始化时显示已上传图片, 返回已上传图片的信息
+    /**
+     * 初始化时显示已上传图片, 返回已上传图片的信息
+     * @return array
+     */
     public function initFile()
     {
         $request = Yii::$app->request;
@@ -109,7 +109,7 @@ class UploaderAction extends Action
             $filePath = FileHelper::normalizePath($rootPath . DIRECTORY_SEPARATOR . $datum['url']);  // 绝对路径
             $imgInfo = Helper::getImageInfo($filePath, true);  // 获取图片信息
             $result[$k] = ArrayHelper::merge($datum, [
-                'path' => self::makeThumb2($filePath, $request->post('width'), $request->post('height'), $imgInfo['mime']),
+                'path' => $this->makeThumb($filePath, $request->post('width'), $request->post('height'), $imgInfo['mime']),
             ]);
         }
         return $result;
@@ -123,7 +123,7 @@ class UploaderAction extends Action
      * @param string $mime 原始图片的 MIME 类型
      * @return string 缩略图的 Data URL 值
      */
-    private function makeThumb2($filePath, $width, $height, $mime = 'image/jpeg')
+    public function makeThumb($filePath, $width, $height, $mime = 'image/jpeg')
     {
         $thumbnail = Image::thumbnail($filePath, $width, $height);
         return 'data:' . $mime . ';base64,' . chunk_split(base64_encode($thumbnail->__toString()));
