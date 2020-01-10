@@ -39,7 +39,6 @@ public function actions()
             'class' => 'moxuandi\webuploader\UploaderAction',
             // 可选参数, 参考 UploaderAction::$_config
             'config' => [
-                'maxSize' => 1*1024*1024,  // 上传大小限制, 单位B, 默认1MB, 注意修改服务器的大小限制
                 'allowFiles' => ['.png', '.jpg', '.jpeg', '.gif', '.bmp'],  // 上传图片格式显示
                 'pathFormat' => '/uploads/image/{yyyy}{mm}{dd}/{hh}{ii}{ss}_{rand:6}',  // 上传保存路径, 可以自定义保存路径和文件名格式
 

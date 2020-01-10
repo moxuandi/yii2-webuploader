@@ -31,7 +31,6 @@ class UploaderAction extends Action
         parent::init();
         Yii::$app->request->enableCsrfValidation = false;  // 关闭csrf
         $_config = [  // 默认的上传配置信息
-            'maxSize' => 1*1024*1024,  // 上传大小限制, 单位B, 默认1MB, 注意修改服务器的大小限制
             'allowFiles' => ['.png', '.jpg', '.jpeg', '.gif', '.bmp'],  // 上传图片格式显示
             'pathFormat' => '/uploads/image/{yyyy}{mm}{dd}/{hh}{ii}{ss}_{rand:6}',  // 上传保存路径, 可以自定义保存路径和文件名格式
             /* {filename} 会替换成原文件名[要注意中文文件乱码问题] */
